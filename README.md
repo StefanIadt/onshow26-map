@@ -1,6 +1,10 @@
 # On Show 26 — Wayfinding map (proof of concept)
 
-Static site: `index.html` plus `fonts/` and `assets/`. Deploy to [Vercel](https://vercel.com/) for a free URL and optional custom domain.
+**Live (GitHub Pages):** [https://stefaniadt.github.io/onshow26-map/](https://stefaniadt.github.io/onshow26-map/)
+
+**Repository:** [github.com/StefanIadt/onshow26-map](https://github.com/StefanIadt/onshow26-map)
+
+Static site: `index.html` plus `fonts/` and `assets/`. You can also deploy to [Vercel](https://vercel.com/) for a different hostname or a custom domain.
 
 ## Run locally
 
