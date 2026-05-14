@@ -180,15 +180,38 @@
     text-align: right;
   }
 
-  h1.hero {
+  /* ─── Hero: stacked display type (IADT “block + inner alignment” rhythm) ─ */
+  h1.hero.hero-stack {
     font-family: var(--sans);
     font-weight: 900;
-    font-size: clamp(34px, 9.2vw, 42px);
-    line-height: 0.92;
-    letter-spacing: -0.035em;
+    font-size: clamp(30px, 8vw, 38px);
+    line-height: 0.9;
+    letter-spacing: -0.042em;
     margin: 8px 0 6px;
     color: var(--ink);
-    text-wrap: balance;
+    display: inline-block;
+    vertical-align: top;
+    width: fit-content;
+    max-width: 100%;
+    text-rendering: geometricPrecision;
+  }
+  .hero-stack .hero-line {
+    display: block;
+    white-space: nowrap;
+  }
+  /* Longest line sets measure; short lines optically meet the same right edge */
+  .hero-stack .hero-line--r {
+    text-align: right;
+  }
+  /* Inner line: stepped in so verticals read on a second rhythm (cf. “it” / “getting”) */
+  .hero-stack .hero-line--inner {
+    text-align: left;
+    padding-left: 0.38em;
+    letter-spacing: -0.05em;
+  }
+  /* Bottom anchor line: defines block width */
+  .hero-stack .hero-line--anchor {
+    text-align: left;
   }
   .hero-sub {
     font-family: var(--sans);
@@ -805,7 +828,12 @@
         <span class="when">Thu 28 May · 17:30</span>
       </div>
 
-      <h1 class="hero">Find your way around.</h1>
+      <h1 class="hero hero-stack" aria-label="Find your way around.">
+        <span class="hero-line hero-line--r">find</span>
+        <span class="hero-line hero-line--inner">your</span>
+        <span class="hero-line hero-line--r">way</span>
+        <span class="hero-line hero-line--anchor">around.</span>
+      </h1>
       <p class="hero-sub">A window into the future of the creative industry. <b>Three buildings, one evening.</b></p>
 
       <div class="view-inline" role="group" aria-label="View">
