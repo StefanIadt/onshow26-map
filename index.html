@@ -1,0 +1,781 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<title>On Show 26 — Map</title>
+<style>
+  /* ─── Fonts ─────────────────────────────────────────────── */
+  @font-face {
+    font-family: "Circular Std";
+    src: url("fonts/CircularStd-Book.otf") format("opentype");
+    font-weight: 400; font-style: normal; font-display: swap;
+  }
+  @font-face {
+    font-family: "Circular Std";
+    src: url("fonts/CircularStd-Bold.otf") format("opentype");
+    font-weight: 700; font-style: normal; font-display: swap;
+  }
+  @font-face {
+    font-family: "Circular Std";
+    src: url("fonts/CircularStd-Black.otf") format("opentype");
+    font-weight: 900; font-style: normal; font-display: swap;
+  }
+  @font-face {
+    font-family: "Simplon Mono";
+    src: url("fonts/SimplonMono-Regular.otf") format("opentype");
+    font-weight: 400; font-style: normal; font-display: swap;
+  }
+
+  /* ─── Tokens ────────────────────────────────────────────── */
+  :root {
+    --pink:      #EC008C;
+    --aubergine: #3D0E27;
+    --yellow:    #FBF06F;
+    --ink:       #000000;
+    --paper:     #FFFFFF;
+    --rule:      rgba(0,0,0,0.16);
+    --muted:     rgba(0,0,0,0.55);
+
+    --sans:  "Circular Std", -apple-system, "Helvetica Neue", Arial, sans-serif;
+    --mono:  "Simplon Mono", ui-monospace, "SF Mono", Menlo, monospace;
+
+    --pad: 18px;
+  }
+
+  *, *::before, *::after { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+  html, body { margin: 0; padding: 0; }
+  body {
+    background: #ECECEC;
+    font-family: var(--sans);
+    color: var(--ink);
+    min-height: 100vh;
+    display: flex;
+    justify-content: center;
+    overscroll-behavior-y: contain;
+  }
+
+  /* ─── Phone container ──────────────────────────────────── */
+  .phone {
+    width: 100%;
+    max-width: 440px;
+    min-height: 100vh;
+    background: var(--paper);
+    position: relative;
+    overflow: hidden;
+  }
+  @media (min-width: 520px) {
+    .phone {
+      margin: 32px 0;
+      min-height: 0;
+      box-shadow: 0 24px 60px rgba(0,0,0,0.16);
+    }
+  }
+  .map-body { padding: 18px var(--pad) 64px; }
+
+  /* ─── Icon system ───────────────────────────────────────── */
+  .icon { display: inline-block; fill: currentColor; flex: none; }
+  .icon svg { display: block; width: 100%; height: 100%; fill: currentColor; }
+
+  /* ───────────────────────────────────────────────────────── */
+  /* ─── SPLASH (flat pink + black logo) ───────────────────── */
+  /* ───────────────────────────────────────────────────────── */
+  .splash {
+    position: absolute;
+    inset: 0;
+    z-index: 50;
+    background: var(--pink);
+    display: grid;
+    place-items: center;
+    cursor: pointer;
+    will-change: transform;
+  }
+  .splash.dismissed {
+    transform: translateY(-100%);
+    transition: transform 700ms cubic-bezier(.7,0,.2,1);
+    pointer-events: none;
+  }
+  .splash .logo {
+    width: 56%;
+    aspect-ratio: 685 / 962;
+    background: url("assets/logo-black.png") center / contain no-repeat;
+  }
+  .splash .hint {
+    position: absolute; left: 0; right: 0; bottom: 22px;
+    text-align: center;
+    font-family: var(--mono);
+    font-size: 12px;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: rgba(0,0,0,0.55);
+    pointer-events: none;
+  }
+
+  /* ───────────────────────────────────────────────────────── */
+  /* ─── HEADER ────────────────────────────────────────────── */
+  /* ───────────────────────────────────────────────────────── */
+  .top-strip {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-family: var(--mono);
+    font-size: 12px;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    color: var(--ink);
+    padding-bottom: 14px;
+    border-bottom: 1px solid var(--ink);
+  }
+  .top-strip .brand { display: inline-flex; align-items: center; gap: 8px; }
+  .top-strip .brand-mark {
+    width: 22px; height: 30px;
+    background: url("assets/logo-pink.png") center / contain no-repeat;
+    display: inline-block;
+  }
+  .top-strip .when { color: var(--muted); }
+
+  h1.hero {
+    font-family: var(--sans);
+    font-weight: 900;
+    font-size: 52px;
+    line-height: 0.88;
+    letter-spacing: -0.035em;
+    margin: 22px 0 12px;
+    color: var(--ink);
+    text-wrap: balance;
+  }
+  .hero-sub {
+    font-family: var(--sans);
+    font-weight: 400;
+    font-size: 15px;
+    line-height: 1.35;
+    color: var(--ink);
+    max-width: 30ch;
+    margin: 0 0 20px;
+  }
+  .hero-sub b { font-weight: 700; }
+
+  /* ─── View toggle (square, IADT-brand) ──────────────────── */
+  .view-toggle {
+    display: inline-flex;
+    border: 1.5px solid var(--ink);
+    font-family: var(--mono);
+    font-size: 12px;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    background: var(--paper);
+  }
+  .view-toggle button {
+    appearance: none;
+    border: 0;
+    background: transparent;
+    color: var(--ink);
+    padding: 10px 16px;
+    font: inherit;
+    cursor: pointer;
+    min-height: 44px;
+  }
+  .view-toggle button + button { border-left: 1.5px solid var(--ink); }
+  .view-toggle button[aria-pressed="true"] { background: var(--ink); color: var(--paper); }
+
+  /* ─── Site plan: full-bleed, top/bottom rules only ──────── */
+  .plan {
+    margin: 18px calc(var(--pad) * -1) 0;
+    border-top: 1px solid var(--ink);
+    border-bottom: 1px solid var(--ink);
+    background: var(--paper);
+  }
+  .plan svg { display: block; width: 100%; height: auto; }
+  .plan-meta {
+    border-top: 1px solid var(--ink);
+    padding: 10px var(--pad);
+    display: flex;
+    justify-content: flex-start;
+    align-items: center;
+    font-family: var(--mono);
+    font-size: 12px;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--muted);
+    background: var(--paper);
+  }
+
+  /* SVG plan styles */
+  .b-rect       { fill: var(--paper); stroke: var(--ink); stroke-width: 1.5; cursor: pointer; transition: fill 200ms; }
+  .b-rect.active{ fill: var(--pink); stroke: var(--ink); }
+  .b-label      { font-family: var(--sans); font-weight: 700; font-size: 14px; fill: var(--ink); pointer-events: none; letter-spacing: -0.01em; }
+  .b-label.active { fill: var(--paper); }
+  .b-sub        { font-family: var(--mono); font-size: 9px; letter-spacing: 0.1em; fill: var(--muted); pointer-events: none; text-transform: uppercase; }
+  .b-sub.active { fill: var(--paper); opacity: 0.9; }
+  .annot        { font-family: var(--mono); font-size: 9px; letter-spacing: 0.14em; fill: var(--ink); text-transform: uppercase; }
+  .annot.compass { font-size: 15px; font-weight: 700; letter-spacing: 0.12em; }
+  .annot.plan-corner { font-size: 11px; font-weight: 700; letter-spacing: 0.14em; fill: var(--ink); }
+  .courtyard    { fill: rgba(0,0,0,0.04); stroke: var(--ink); stroke-width: 1; stroke-dasharray: 3 3; }
+  .pathline     { fill: none; stroke: var(--ink); stroke-width: 1.25; stroke-dasharray: 2 3; }
+
+  /* ─── Search (square) ───────────────────────────────────── */
+  .search {
+    margin-top: 22px;
+    position: relative;
+    border: 1.5px solid var(--ink);
+    background: var(--paper);
+    display: flex;
+    align-items: center;
+  }
+  .search input {
+    appearance: none;
+    width: 100%;
+    border: 0;
+    background: transparent;
+    font-family: var(--sans);
+    font-weight: 400;
+    font-size: 15px;
+    padding: 14px 16px 14px 46px;
+    outline: none;
+    color: var(--ink);
+    min-height: 48px;
+  }
+  .search input::placeholder { color: var(--muted); }
+  .search .icon {
+    position: absolute; left: 14px; top: 50%; transform: translateY(-50%);
+    width: 18px; height: 18px; color: var(--ink);
+    pointer-events: none;
+  }
+
+  /* ─── Chips (square) ────────────────────────────────────── */
+  .chips {
+    margin-top: 12px;
+    display: flex; flex-wrap: wrap; gap: 6px;
+  }
+  .chip {
+    appearance: none;
+    border: 1.5px solid var(--ink);
+    background: var(--paper);
+    color: var(--ink);
+    padding: 9px 14px;
+    font-family: var(--sans);
+    font-weight: 700;
+    font-size: 13px;
+    letter-spacing: -0.005em;
+    cursor: pointer;
+    min-height: 38px;
+    transition: background 150ms, color 150ms, border-color 150ms;
+  }
+  .chip[aria-selected="true"] {
+    background: var(--pink);
+    color: var(--paper);
+    border-color: var(--pink);
+  }
+
+  /* ─── Section heading ───────────────────────────────────── */
+  .section-head {
+    margin-top: 24px;
+    padding-bottom: 12px;
+    border-bottom: 1.5px solid var(--ink);
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    font-family: var(--mono);
+    font-size: 12px;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--muted);
+  }
+  .section-head .label { color: var(--ink); }
+  .section-head a {
+    color: var(--ink);
+    text-decoration: none;
+    border-bottom: 1px solid var(--ink);
+    padding-bottom: 1px;
+    cursor: pointer;
+  }
+  .empty {
+    padding: 32px 6px;
+    text-align: center;
+    font-family: var(--mono);
+    font-size: 12px;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--muted);
+  }
+
+  /* ─── Floor + rooms ─────────────────────────────────────── */
+  .floors { margin-top: 4px; }
+  .floor { border-top: 1px solid var(--rule); padding: 18px 0 6px; }
+  .floor:first-child { border-top: 0; padding-top: 16px; }
+  .floor-head {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 10px;
+    font-family: var(--mono);
+    font-size: 12px;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--muted);
+  }
+  .floor-num {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    color: var(--ink);
+  }
+  /* Square floor-number badge */
+  .floor-num .num {
+    display: inline-grid;
+    place-items: center;
+    width: 26px; height: 26px;
+    border: 1.5px solid var(--ink);
+    font-family: var(--sans);
+    font-weight: 700;
+    font-size: 13px;
+    line-height: 1;
+    /* optical: Circular sits slightly above visual centre */
+    padding-top: 1px;
+  }
+  .means {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--ink);
+  }
+  .means svg { fill: currentColor; display: block; }
+
+  .room {
+    display: grid;
+    grid-template-columns: 1fr auto;
+    column-gap: 16px;
+    row-gap: 4px;
+    align-items: baseline;
+    padding: 14px 0;
+    border-top: 1px solid var(--rule);
+    cursor: pointer;
+  }
+  .room:first-of-type { border-top: 0; }
+  .room-title {
+    font-family: var(--sans);
+    font-weight: 700;
+    font-size: 17px;
+    letter-spacing: -0.015em;
+    line-height: 1.1;
+    color: var(--ink);
+  }
+  .room-code {
+    font-family: var(--mono);
+    font-size: 12px;
+    color: var(--ink);
+    text-align: right;
+    white-space: nowrap;
+    background: rgba(0,0,0,0.05);
+    padding: 4px 8px;
+  }
+  .room-note {
+    grid-column: 1 / -1;
+    font-family: var(--sans);
+    font-weight: 400;
+    font-size: 14px;
+    line-height: 1.4;
+    color: var(--muted);
+    margin-top: 2px;
+  }
+  .room-note b { color: var(--ink); font-weight: 700; }
+  .room-where {
+    grid-column: 1 / -1;
+    font-family: var(--mono);
+    font-size: 12px;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-top: 4px;
+  }
+  .room-where b { color: var(--ink); font-weight: 400; }
+
+  /* ─── Footer ────────────────────────────────────────────── */
+  footer {
+    margin-top: 36px;
+    padding-top: 18px;
+    border-top: 1px solid var(--ink);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-family: var(--mono);
+    font-size: 12px;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--muted);
+  }
+  footer .replay {
+    background: none; border: 0; padding: 0;
+    font: inherit; color: var(--ink); cursor: pointer;
+    border-bottom: 1px solid var(--ink); padding-bottom: 1px;
+  }
+
+  .hidden { display: none !important; }
+</style>
+</head>
+<body>
+
+<!-- ─── Icon library (hidden) ──────────────────────────────── -->
+<svg width="0" height="0" style="position:absolute" aria-hidden="true" focusable="false">
+  <defs>
+    <symbol id="i-pin" viewBox="0 0 52.06 54.79">
+      <path d="M26.03,44.92l13.66-19.97c1.67-2.62,2.56-5.63,2.56-8.72C42.25,7.28,34.97,0,26.03,0S9.8,7.28,9.8,16.22c0,3.26.71,5.83,2.29,8.3l13.94,20.4ZM26.03,2.21c7.73,0,14.01,6.29,14.01,14.01,0,2.67-.76,5.27-2.19,7.5l-11.82,17.27-11.8-17.21-.25-.43c-1.36-2.13-1.97-4.33-1.97-7.14,0-7.72,6.29-14.01,14.01-14.01Z"/>
+      <path d="M26.03,23.61c3.92,0,7.11-3.19,7.11-7.11s-3.19-7.11-7.11-7.11-7.11,3.19-7.11,7.11,3.19,7.11,7.11,7.11ZM26.03,11.61c2.7,0,4.9,2.2,4.9,4.9s-2.2,4.9-4.9,4.9-4.9-2.2-4.9-4.9,2.2-4.9,4.9-4.9Z"/>
+      <polygon points="41.91 32.19 41.91 34.4 49.84 34.4 49.84 52.57 2.21 52.57 2.21 34.4 11.01 34.4 11.01 32.19 0 32.19 0 54.79 52.06 54.79 52.06 32.19 41.91 32.19"/>
+    </symbol>
+    <symbol id="i-stairs" viewBox="0 0 61.34 43.12">
+      <polygon points="0 43.12 0 40.9 19.35 40.89 19.35 20.46 39.79 20.44 39.79 0 61.34 0 61.34 2.21 42.01 2.21 42.01 22.65 21.56 22.67 21.56 43.1 0 43.12"/>
+    </symbol>
+    <symbol id="i-lift" viewBox="0 0 29.05 60.36">
+      <polygon points="28.07 10.81 26.5 9.24 22.51 13.22 22.51 1.57 20.3 1.57 20.3 13.21 16.33 9.24 14.77 10.81 21.41 17.45 28.07 10.81"/>
+      <polygon points="6.51 4.24 6.51 15.89 8.73 15.89 8.73 4.25 12.7 8.23 14.26 6.67 7.62 0 .96 6.66 2.53 8.23 6.51 4.24"/>
+      <path d="M0,19.39v36.58h2.21V21.6h24.62v32.05h-7.92v-3.58h2.56v-10.06c0-1.17-.45-2.25-1.27-3.04-.82-.82-1.9-1.27-3.04-1.27h-5.33c-1.17,0-2.25.45-3.04,1.27-.81.81-1.27,1.91-1.27,3.04v10.06h2.56v8.07H3.91v2.21h8.4v-12.5h-2.56v-7.84c0-.54.23-1.08.63-1.48.38-.4.89-.6,1.46-.6h5.33c.55,0,1.07.22,1.48.63.4.38.6.89.6,1.46v7.84h-2.56v8.01h12.35V19.39H0Z"/>
+      <path d="M19.5,29.34c0-2.76-2.24-5-5-5s-5,2.24-5,5,2.24,5,5,5,5-2.24,5-5ZM11.72,29.34c0-1.54,1.25-2.78,2.78-2.78s2.78,1.25,2.78,2.78-1.25,2.79-2.78,2.79-2.78-1.25-2.78-2.79Z"/>
+    </symbol>
+    <symbol id="i-entrance" viewBox="0 0 56.58 48.7">
+      <path d="M56.58,36.17h-14.79V0H14.79v36.17H0v2.21h22.77v-2.21h-5.77V2.21h20.08l-10.91,7.62v38.87l14.74-10.32h15.67v-2.21ZM28.38,10.99l11.19-7.81v33.44l-11.19,7.83V10.99Z"/>
+    </symbol>
+    <symbol id="i-info" viewBox="0 0 54.09 54.09">
+      <path d="M27.05,0C12.13,0,0,12.13,0,27.04s12.13,27.04,27.05,27.04,27.05-12.13,27.05-27.04S41.96,0,27.05,0ZM27.05,51.88c-13.69,0-24.83-11.14-24.83-24.83S13.35,2.21,27.05,2.21s24.83,11.14,24.83,24.83-11.14,24.83-24.83,24.83Z"/>
+      <rect x="25.94" y="20.22" width="2.21" height="19.31"/>
+      <path d="M27.05,11.57c-1.2,0-2.18.98-2.18,2.18s.98,2.18,2.18,2.18,2.18-.98,2.18-2.18-.98-2.18-2.18-2.18Z"/>
+    </symbol>
+    <symbol id="i-search" viewBox="0 0 48.55 48.55">
+      <path d="M48.55,46.98l-12.94-12.94c3.25-3.62,5.24-8.38,5.24-13.62C40.85,9.16,31.69,0,20.43,0S0,9.16,0,20.43s9.16,20.43,20.43,20.43c5.23,0,10-2,13.62-5.24l12.94,12.94,1.57-1.57ZM20.43,38.64c-10.04,0-18.21-8.17-18.21-18.21S10.38,2.21,20.43,2.21s18.21,8.17,18.21,18.21-8.17,18.21-18.21,18.21Z"/>
+    </symbol>
+  </defs>
+</svg>
+
+<div class="phone" id="root">
+  <div class="map-body" id="body"></div>
+</div>
+
+<script>
+  /* ─────────────────────────────────────────────────────────
+     SPLASH (single variant: flat pink + black logo)
+     ───────────────────────────────────────────────────────── */
+  function showSplash() {
+    const el = document.createElement('div');
+    el.className = 'splash';
+    el.innerHTML = `
+      <div class="logo"></div>
+      <div class="hint">tap to enter</div>
+    `;
+    el.addEventListener('click', () => dismissSplash(el));
+    document.getElementById('root').appendChild(el);
+    setTimeout(() => dismissSplash(el), 1400);
+  }
+  function dismissSplash(el) {
+    if (!el || el.classList.contains('dismissed')) return;
+    el.classList.add('dismissed');
+    setTimeout(() => el.remove(), 750);
+  }
+
+  /* ─────────────────────────────────────────────────────────
+     MAP DATA
+     ───────────────────────────────────────────────────────── */
+  const DATA = {
+    quad: {
+      label: "Quadrangle",
+      sub: "Q wing",
+      floors: [
+        { num: "1", name: "First floor", access: "stairs",
+          rooms: [
+            { title: "Art · Paint", code: "QN103", note: "Paint Studio", tags: ["art"] },
+          ]
+        },
+        { num: "G", name: "Ground floor", access: "lift",
+          rooms: [
+            { title: "Art · Film", code: "TSH", note: "Trevor Scott Hall", tags: ["art","film"] },
+            { title: "Art · Sculpture", code: "QW008 · QW005", note: "Sculpture Base + the Cave", tags: ["art"] },
+            { title: "Photography + Visual Media", code: "QE006 · QE036 · QE003", note: "", tags: ["photo"] },
+            { title: "Film + Television", code: "NFS Studio 1", note: "National Film School", tags: ["film"] },
+          ]
+        }
+      ]
+    },
+    atrium: {
+      label: "Atrium",
+      sub: "A wing",
+      floors: [
+        { num: "G", name: "Ground floor", access: "lift",
+          rooms: [
+            { title: "Creative Pathways", code: "Foyer", note: "Foyer exhibition", tags: ["design"] },
+            { title: "Creative Music Production", code: "A019 · A109", note: "", tags: ["music"] },
+            { title: "Immersive Media Production", code: "A016 · A024", note: "<b>Industry event</b> in the Immersive Media Lab", tags: ["immersive"] },
+          ]
+        }
+      ]
+    },
+    digital: {
+      label: "Digital Media",
+      sub: "D wing",
+      floors: [
+        { num: "3", name: "Third floor", access: "lift",
+          rooms: [
+            { title: "Graphic Design", code: "D304 · D306", note: "", tags: ["design"] },
+            { title: "Design for Film", code: "Open space", note: "", tags: ["design","film"] },
+          ]
+        },
+        { num: "2", name: "Second floor", access: "stairs",
+          rooms: [
+            { title: "Animation", code: "D206 · D208 · D210", note: "", tags: ["animation"] },
+            { title: "Design for Film", code: "Open space", note: "", tags: ["design","film"] },
+          ]
+        },
+        { num: "1", name: "First floor", access: "stairs",
+          rooms: [
+            { title: "Masters Showcase", code: "Open space", note: "", tags: ["design"] },
+          ]
+        }
+      ]
+    }
+  };
+
+  const DISCIPLINES = [
+    { id: "all",       label: "All" },
+    { id: "animation", label: "Animation" },
+    { id: "art",       label: "Art" },
+    { id: "design",    label: "Design" },
+    { id: "film",      label: "Film" },
+    { id: "photo",     label: "Photo" },
+    { id: "music",     label: "Music" },
+    { id: "immersive", label: "Immersive" },
+  ];
+
+  /* ─── State ─────────────────────────────────────────────── */
+  let active = "quad";
+  let showPlan = true;
+  let query = "";
+  let filter = "all";
+
+  /* ─── Helpers ───────────────────────────────────────────── */
+  function planCornerLabel() {
+    const m = { digital: "DMB", atrium: "Atrium", quad: "Quad" };
+    return m[active] || "";
+  }
+  function accessSvg(access) {
+    if (access === "lift") {
+      return `<svg viewBox="0 0 29.05 60.36" style="width:14px;height:30px;flex-shrink:0" aria-hidden="true"><use href="#i-lift"/></svg>`;
+    }
+    return `<svg viewBox="0 0 61.34 43.12" style="width:28px;height:20px;flex-shrink:0" aria-hidden="true"><use href="#i-stairs"/></svg>`;
+  }
+
+  /* ─── Site plan SVG ─────────────────────────────────────── */
+  function plan() {
+    const a = (id) => active === id ? " active" : "";
+    return `
+      <svg viewBox="0 0 400 540" xmlns="http://www.w3.org/2000/svg" aria-label="Site plan">
+        <text x="22" y="30" class="annot compass">↑ N</text>
+        <text x="378" y="32" class="annot plan-corner" text-anchor="end">${planCornerLabel()}</text>
+
+        <g data-key="digital">
+          <rect class="b-rect${a('digital')}" x="50" y="40" width="300" height="110"/>
+          <text class="b-label${a('digital')}" x="200" y="102" text-anchor="middle">DMB</text>
+        </g>
+
+        <g data-key="atrium">
+          <rect class="b-rect${a('atrium')}" x="50" y="160" width="300" height="48"/>
+          <text class="b-label${a('atrium')}" x="200" y="192" text-anchor="middle">Atrium</text>
+        </g>
+
+        <g data-key="quad">
+          <rect class="b-rect${a('quad')}" x="50" y="214" width="300" height="296"/>
+          <text class="b-label${a('quad')}" x="200" y="368" text-anchor="middle">Quad</text>
+        </g>
+
+        <rect class="courtyard" x="66"  y="288" width="130" height="200"/>
+        <text x="131" y="392" class="annot" text-anchor="middle">COURTYARD</text>
+        <rect class="courtyard" x="204" y="288" width="130" height="200"/>
+        <text x="269" y="392" class="annot" text-anchor="middle">COURTYARD</text>
+
+        <g data-key="quad">
+          <rect class="b-rect${a('quad')}" x="262" y="180" width="88" height="34"/>
+          <text class="b-sub${a('quad')}"   x="270" y="194" style="font-size:7px">NFS</text>
+          <text class="b-label${a('quad')}" x="270" y="208" style="font-size:10px">Film School</text>
+        </g>
+
+        <text x="382" y="176" class="annot" transform="rotate(90 382 176)" text-anchor="start" style="font-size:10px;font-weight:700;letter-spacing:0.16em">KILL AVE ENTRANCE</text>
+        <path class="pathline" d="M 382 118 L 320 150 L 260 172 L 200 184"/>
+      </svg>
+    `;
+  }
+
+  /* ─── Filters ───────────────────────────────────────────── */
+  function isFiltering() {
+    return filter !== "all" || query.trim().length > 0;
+  }
+  function roomMatches(r) {
+    if (filter !== "all" && !(r.tags || []).includes(filter)) return false;
+    const q = query.trim().toLowerCase();
+    if (!q) return true;
+    return (
+      r.title.toLowerCase().includes(q) ||
+      r.code.toLowerCase().includes(q) ||
+      (r.note || "").toLowerCase().includes(q) ||
+      (r.tags || []).some(t => t.includes(q))
+    );
+  }
+  function filteredResults() {
+    const out = [];
+    for (const [key, b] of Object.entries(DATA)) {
+      for (const f of b.floors) {
+        for (const r of f.rooms) {
+          if (roomMatches(r)) out.push({
+            ...r, building: b.label, sub: b.sub, floor: f.num, floorName: f.name, key
+          });
+        }
+      }
+    }
+    return out;
+  }
+
+  /* ─── Rendering ─────────────────────────────────────────── */
+  function renderBuilding(b) {
+    return `
+      <div class="floors">
+        ${b.floors.map(f => `
+          <section class="floor">
+            <div class="floor-head">
+              <span class="floor-num">
+                <span class="num">${f.num}</span>
+                <span>${f.name}</span>
+              </span>
+              <span style="display:inline-flex;align-items:center;gap:8px">
+                <span class="means" style="color:var(--ink)" aria-label="${f.access}">
+                  ${accessSvg(f.access)}
+                </span>
+                <span>${b.sub}</span>
+              </span>
+            </div>
+            ${f.rooms.map(r => `
+              <div class="room">
+                <div class="room-title">${r.title}</div>
+                <div class="room-code">${r.code}</div>
+                ${r.note ? `<div class="room-note">${r.note}</div>` : ''}
+              </div>
+            `).join('')}
+          </section>
+        `).join('')}
+      </div>
+    `;
+  }
+
+  function renderResults() {
+    const results = filteredResults();
+    const label = filter === "all"
+      ? "All disciplines"
+      : (DISCIPLINES.find(d => d.id === filter) || {}).label || filter;
+    return `
+      <div class="section-head">
+        <span><span class="label">${results.length}</span> result${results.length === 1 ? '' : 's'} · ${label}${query ? ` · "${query}"` : ''}</span>
+        <a data-clear>Clear</a>
+      </div>
+      ${results.length === 0 ? `<div class="empty">No rooms match.</div>` : `
+        <div class="floors">
+          ${results.map(r => `
+            <div class="room">
+              <div class="room-title">${r.title}</div>
+              <div class="room-code">${r.code}</div>
+              <div class="room-where"><b>${r.building}</b> · Floor ${r.floor}</div>
+              ${r.note ? `<div class="room-note">${r.note}</div>` : ''}
+            </div>
+          `).join('')}
+        </div>
+      `}
+    `;
+  }
+
+  function render() {
+    const b = DATA[active];
+    const body = document.getElementById('body');
+    body.innerHTML = `
+      <div class="top-strip">
+        <span class="brand"><span class="brand-mark" aria-hidden="true"></span>On Show 26</span>
+        <span class="when">Thu 28 May · 17:30</span>
+      </div>
+
+      <h1 class="hero">Find your<br/>way around.</h1>
+      <p class="hero-sub">A window into the future of the creative industry. <b>Three buildings, one evening.</b></p>
+
+      <div class="view-toggle" role="group" aria-label="View">
+        <button data-view="plan" aria-pressed="${showPlan}">Site plan</button>
+        <button data-view="list" aria-pressed="${!showPlan}">List only</button>
+      </div>
+
+      <div class="plan ${showPlan ? '' : 'hidden'}">
+        ${plan()}
+        <div class="plan-meta">
+          <span>Tap a building</span>
+        </div>
+      </div>
+
+      <div class="search">
+        <span class="icon">
+          <svg viewBox="0 0 48.55 48.55" style="width:100%;height:100%;fill:currentColor">
+            <use href="#i-search"/>
+          </svg>
+        </span>
+        <input id="q" type="text" placeholder="Search rooms or disciplines" value="${query.replace(/"/g,'&quot;')}" />
+      </div>
+
+      <div class="chips" role="tablist">
+        ${DISCIPLINES.map(d => `
+          <button class="chip" role="tab" aria-selected="${filter === d.id}" data-chip="${d.id}">${d.label}</button>
+        `).join('')}
+      </div>
+
+      ${isFiltering() ? renderResults() : `
+        <div class="section-head">
+          <span><span class="label">${b.label}</span> · ${b.sub}</span>
+          <span>${b.floors.length} floor${b.floors.length === 1 ? '' : 's'}</span>
+        </div>
+        ${renderBuilding(b)}
+      `}
+
+      <footer>
+        <span>onshow.iadt.ie</span>
+        <button class="replay" data-replay>Replay intro</button>
+      </footer>
+    `;
+
+    /* event bindings */
+    const qInput = body.querySelector('#q');
+    if (qInput) {
+      qInput.addEventListener('input', (e) => {
+        query = e.target.value;
+        render();
+        requestAnimationFrame(() => {
+          const el = document.getElementById('q');
+          if (el) { el.focus(); el.setSelectionRange(query.length, query.length); }
+        });
+      });
+    }
+    body.querySelectorAll('[data-chip]').forEach(c => {
+      c.addEventListener('click', () => { filter = c.dataset.chip; render(); });
+    });
+    body.querySelectorAll('[data-view]').forEach(t => {
+      t.addEventListener('click', () => {
+        showPlan = t.dataset.view === 'plan';
+        render();
+      });
+    });
+    body.querySelectorAll('svg [data-key]').forEach(g => {
+      g.addEventListener('click', () => {
+        active = g.dataset.key;
+        filter = 'all'; query = '';
+        render();
+      });
+    });
+    const clear = body.querySelector('[data-clear]');
+    if (clear) clear.addEventListener('click', () => { query = ''; filter = 'all'; render(); });
+    const replay = body.querySelector('[data-replay]');
+    if (replay) replay.addEventListener('click', () => showSplash());
+  }
+
+  /* ─── Init ──────────────────────────────────────────────── */
+  showSplash();
+  render();
+</script>
+</body>
+</html>
