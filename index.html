@@ -186,19 +186,6 @@
     background: var(--paper);
   }
   .plan svg { display: block; width: 100%; height: auto; }
-  .plan-meta {
-    border-top: 1px solid var(--ink);
-    padding: 10px var(--pad);
-    display: flex;
-    justify-content: flex-start;
-    align-items: center;
-    font-family: var(--mono);
-    font-size: 12px;
-    letter-spacing: 0.06em;
-    text-transform: uppercase;
-    color: var(--muted);
-    background: var(--paper);
-  }
 
   /* SVG plan styles */
   .b-rect       { fill: var(--paper); stroke: var(--ink); stroke-width: 1.5; cursor: pointer; transition: fill 200ms; }
@@ -209,7 +196,17 @@
   .b-sub.active { fill: var(--paper); opacity: 0.9; }
   .annot        { font-family: var(--mono); font-size: 9px; letter-spacing: 0.14em; fill: var(--ink); text-transform: uppercase; }
   .annot.compass { font-size: 15px; font-weight: 700; letter-spacing: 0.12em; }
-  .annot.plan-corner { font-size: 11px; font-weight: 700; letter-spacing: 0.14em; fill: var(--ink); }
+  .annot.tap-hint { font-size: 10px; font-weight: 700; letter-spacing: 0.14em; fill: var(--muted); }
+  .b-plan-id {
+    font-family: var(--mono);
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    fill: var(--ink);
+    pointer-events: none;
+  }
+  .b-plan-id.active { fill: var(--paper); }
   .courtyard    { fill: rgba(0,0,0,0.04); stroke: var(--ink); stroke-width: 1; stroke-dasharray: 3 3; }
   .pathline     { fill: none; stroke: var(--ink); stroke-width: 1.25; stroke-dasharray: 2 3; }
 
@@ -550,10 +547,6 @@
   let filter = "all";
 
   /* ─── Helpers ───────────────────────────────────────────── */
-  function planCornerLabel() {
-    const m = { digital: "DMB", atrium: "Atrium", quad: "Quad" };
-    return m[active] || "";
-  }
   function accessSvg(access) {
     if (access === "lift") {
       return `<svg viewBox="0 0 29.05 60.36" style="width:14px;height:30px;flex-shrink:0" aria-hidden="true"><use href="#i-lift"/></svg>`;
@@ -564,39 +557,50 @@
   /* ─── Site plan SVG ─────────────────────────────────────── */
   function plan() {
     const a = (id) => active === id ? " active" : "";
+    const BX = 50;
+    const BW = 300;
+    const BH = 110;
+    const GAP = 48;
+    const Y0 = 52;
+    const yDmb = Y0;
+    const yAtrium = yDmb + BH + GAP;
+    const yQuad = yAtrium + BH + GAP;
+    const hQuad = 248;
+    const cy = yQuad + 88;
+    const ch = 128;
     return `
-      <svg viewBox="0 0 400 540" xmlns="http://www.w3.org/2000/svg" aria-label="Site plan">
-        <text x="22" y="30" class="annot compass">↑ N</text>
-        <text x="378" y="32" class="annot plan-corner" text-anchor="end">${planCornerLabel()}</text>
+      <svg viewBox="0 0 400 672" xmlns="http://www.w3.org/2000/svg" aria-label="Site plan">
+        <text x="22" y="34" class="annot compass">↑ N</text>
+        <text x="378" y="34" class="annot tap-hint" text-anchor="end">TAP A BUILDING</text>
 
         <g data-key="digital">
-          <rect class="b-rect${a('digital')}" x="50" y="40" width="300" height="110"/>
-          <text class="b-label${a('digital')}" x="200" y="102" text-anchor="middle">DMB</text>
+          <rect class="b-rect${a("digital")}" x="${BX}" y="${yDmb}" width="${BW}" height="${BH}"/>
+          <text class="b-plan-id${a("digital")}" x="62" y="${yDmb + 22}">DMB</text>
         </g>
 
         <g data-key="atrium">
-          <rect class="b-rect${a('atrium')}" x="50" y="160" width="300" height="48"/>
-          <text class="b-label${a('atrium')}" x="200" y="192" text-anchor="middle">Atrium</text>
+          <rect class="b-rect${a("atrium")}" x="${BX}" y="${yAtrium}" width="${BW}" height="${BH}"/>
+          <text class="b-plan-id${a("atrium")}" x="62" y="${yAtrium + 22}">ATRIUM</text>
         </g>
 
         <g data-key="quad">
-          <rect class="b-rect${a('quad')}" x="50" y="214" width="300" height="296"/>
-          <text class="b-label${a('quad')}" x="200" y="368" text-anchor="middle">Quad</text>
+          <rect class="b-rect${a("quad")}" x="${BX}" y="${yQuad}" width="${BW}" height="${hQuad}"/>
+          <text class="b-plan-id${a("quad")}" x="62" y="${yQuad + 22}">QUAD</text>
         </g>
 
-        <rect class="courtyard" x="66"  y="288" width="130" height="200"/>
-        <text x="131" y="392" class="annot" text-anchor="middle">COURTYARD</text>
-        <rect class="courtyard" x="204" y="288" width="130" height="200"/>
-        <text x="269" y="392" class="annot" text-anchor="middle">COURTYARD</text>
+        <rect class="courtyard" x="66"  y="${cy}" width="128" height="${ch}"/>
+        <text x="130" y="${cy + ch * 0.55}" class="annot" text-anchor="middle">COURTYARD</text>
+        <rect class="courtyard" x="206" y="${cy}" width="128" height="${ch}"/>
+        <text x="270" y="${cy + ch * 0.55}" class="annot" text-anchor="middle">COURTYARD</text>
 
         <g data-key="quad">
-          <rect class="b-rect${a('quad')}" x="262" y="180" width="88" height="34"/>
-          <text class="b-sub${a('quad')}"   x="270" y="194" style="font-size:7px">NFS</text>
-          <text class="b-label${a('quad')}" x="270" y="208" style="font-size:10px">Film School</text>
+          <rect class="b-rect${a("quad")}" x="262" y="${yQuad}" width="86" height="30"/>
+          <text class="b-sub${a("quad")}" x="272" y="${yQuad + 12}" style="font-size:7px">NFS</text>
+          <text class="b-label${a("quad")}" x="272" y="${yQuad + 26}" style="font-size:9px">FILM SCHOOL</text>
         </g>
 
-        <text x="382" y="176" class="annot" transform="rotate(90 382 176)" text-anchor="start" style="font-size:10px;font-weight:700;letter-spacing:0.16em">KILL AVE ENTRANCE</text>
-        <path class="pathline" d="M 382 118 L 320 150 L 260 172 L 200 184"/>
+        <text x="392" y="210" class="annot" transform="rotate(90 392 210)" text-anchor="start" style="font-size:10px;font-weight:700;letter-spacing:0.16em">KEELE AVE ENTRANCE</text>
+        <path class="pathline" d="M 350 ${yAtrium + BH * 0.5} L 392 210"/>
       </svg>
     `;
   }
@@ -705,9 +709,6 @@
 
       <div class="plan ${showPlan ? '' : 'hidden'}">
         ${plan()}
-        <div class="plan-meta">
-          <span>Tap a building</span>
-        </div>
       </div>
 
       <div class="search">
