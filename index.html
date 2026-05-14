@@ -44,7 +44,12 @@
   }
 
   *, *::before, *::after { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
-  html, body { margin: 0; padding: 0; }
+  html, body {
+    margin: 0;
+    padding: 0;
+    max-width: 100%;
+    overflow-x: hidden;
+  }
   html.splash-open,
   html.splash-open body {
     overflow: hidden;
@@ -59,16 +64,18 @@
     display: flex;
     justify-content: center;
     overscroll-behavior-y: contain;
+    width: 100%;
   }
 
   /* ─── Phone container ──────────────────────────────────── */
   .phone {
     width: 100%;
-    max-width: 440px;
+    max-width: min(440px, 100%);
     min-height: 100vh;
+    min-width: 0;
     background: var(--paper);
     position: relative;
-    overflow: hidden;
+    overflow-x: hidden;
   }
   @media (min-width: 520px) {
     .phone {
@@ -77,7 +84,13 @@
       box-shadow: 0 24px 60px rgba(0,0,0,0.16);
     }
   }
-  .map-body { padding: 12px var(--pad) 48px; }
+  .map-body {
+    padding: 12px var(--pad) 48px;
+    width: 100%;
+    max-width: 100%;
+    min-width: 0;
+    overflow-x: hidden;
+  }
 
   /* ─── Icon system ───────────────────────────────────────── */
   .icon { display: inline-block; fill: currentColor; flex: none; }
@@ -91,6 +104,9 @@
     inset: 0;
     z-index: 9999;
     width: 100%;
+    max-width: 100%;
+    left: 0;
+    right: 0;
     height: 100dvh;
     max-height: 100dvh;
     background: var(--pink);
@@ -145,13 +161,24 @@
     padding-bottom: 8px;
     border-bottom: 1px solid var(--ink);
   }
-  .top-strip .brand { display: inline-flex; align-items: center; gap: 8px; }
+  .top-strip .brand {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    min-width: 0;
+    flex: 1 1 auto;
+  }
   .top-strip .brand-mark {
     width: 22px; height: 30px;
     background: url("assets/logo-pink.png") center / contain no-repeat;
     display: inline-block;
   }
-  .top-strip .when { color: var(--muted); }
+  .top-strip .when {
+    color: var(--muted);
+    flex-shrink: 1;
+    min-width: 0;
+    text-align: right;
+  }
 
   h1.hero {
     font-family: var(--sans);
@@ -167,31 +194,14 @@
     font-family: var(--sans);
     font-weight: 400;
     font-size: 13px;
-    line-height: 1.3;
+    line-height: 1.35;
     color: var(--ink);
-    max-width: 36ch;
-    margin: 0;
+    max-width: 100%;
+    margin: 0 0 8px;
+    overflow-wrap: break-word;
+    word-wrap: break-word;
   }
   .hero-sub b { font-weight: 700; }
-
-  .intro-fold {
-    margin: 4px 0 0;
-    border: 0;
-  }
-  .intro-fold > summary {
-    list-style: none;
-    font-family: var(--mono);
-    font-size: 10px;
-    letter-spacing: 0.1em;
-    text-transform: uppercase;
-    color: var(--muted);
-    cursor: pointer;
-    padding: 4px 0 6px;
-    border-bottom: 1px solid var(--rule);
-  }
-  .intro-fold > summary::-webkit-details-marker { display: none; }
-  .intro-fold[open] > summary { color: var(--ink); margin-bottom: 6px; border-bottom-color: var(--ink); }
-  .intro-fold .hero-sub { margin: 0 0 6px; }
 
   /* ─── Map / list: compact inline control (not two chunky buttons) ─ */
   .view-inline {
@@ -227,10 +237,12 @@
     border-bottom-color: var(--ink);
   }
 
-  /* ─── Site plan: align with content gutters; cap height so map fits in view ─ */
+  /* ─── Site plan: same horizontal inset as body text; clip SVG paint ─── */
   .plan {
     margin: 6px 0 0;
-    padding: 0 var(--pad);
+    padding: 0;
+    width: 100%;
+    max-width: 100%;
     border-top: 1px solid var(--ink);
     border-bottom: 1px solid var(--ink);
     background: var(--paper);
@@ -238,7 +250,7 @@
     overflow: hidden;
     display: flex;
     align-items: flex-start;
-    justify-content: center;
+    justify-content: flex-start;
   }
   .plan svg {
     display: block;
@@ -246,6 +258,8 @@
     max-width: 100%;
     height: auto;
     max-height: min(50dvh, 360px);
+    min-width: 0;
+    flex: 1 1 auto;
   }
 
   /* SVG plan styles */
@@ -259,9 +273,9 @@
   .annot.compass { font-size: 15px; font-weight: 700; letter-spacing: 0.12em; }
   .annot.tap-hint { font-size: 9px; font-weight: 700; letter-spacing: 0.12em; fill: var(--muted); }
   .annot.kill-ave {
-    font-size: 9px;
+    font-size: 8px;
     font-weight: 700;
-    letter-spacing: 0.22em;
+    letter-spacing: 0.14em;
   }
   .b-plan-id {
     font-family: var(--mono);
@@ -311,6 +325,9 @@
     display: flex;
     flex-wrap: nowrap;
     gap: 6px;
+    width: 100%;
+    max-width: 100%;
+    min-width: 0;
     overflow-x: auto;
     -webkit-overflow-scrolling: touch;
     padding-bottom: 4px;
@@ -345,12 +362,15 @@
     display: flex;
     justify-content: space-between;
     align-items: baseline;
+    gap: 8px;
+    min-width: 0;
     font-family: var(--mono);
     font-size: 12px;
     letter-spacing: 0.06em;
     text-transform: uppercase;
     color: var(--muted);
   }
+  .section-head > span { min-width: 0; }
   .section-head .label { color: var(--ink); }
   .section-head a {
     color: var(--ink);
@@ -377,6 +397,8 @@
     display: flex;
     justify-content: space-between;
     align-items: center;
+    gap: 8px;
+    min-width: 0;
     margin-bottom: 10px;
     font-family: var(--mono);
     font-size: 12px;
@@ -413,7 +435,7 @@
 
   .room {
     display: grid;
-    grid-template-columns: 1fr auto;
+    grid-template-columns: minmax(0, 1fr) auto;
     column-gap: 16px;
     row-gap: 4px;
     align-items: baseline;
@@ -429,6 +451,8 @@
     letter-spacing: -0.015em;
     line-height: 1.1;
     color: var(--ink);
+    min-width: 0;
+    overflow-wrap: break-word;
   }
   .room-code {
     font-family: var(--mono);
@@ -633,8 +657,8 @@
   function plan() {
     const a = (id) => active === id ? " active" : "";
     const VB_H = 472;
-    const BX = 18;
-    const BW = 282;
+    const BX = 0;
+    const BW = 292;
     const BH = 88;
     const GAP = 24;
     const Y0 = 34;
@@ -648,12 +672,12 @@
     const nfsX = BX + BW - nfsW;
     const cx1 = BX + 12;
     const cx2 = BX + 12 + 118 + 10;
-    const killCx = 394;
+    const killCx = 392;
     const killCy = 168;
     return `
-      <svg viewBox="0 0 400 ${VB_H}" xmlns="http://www.w3.org/2000/svg" aria-label="Site plan">
-        <text x="${BX + 4}" y="20" class="annot compass">↑ N</text>
-        <text x="396" y="22" class="annot tap-hint" text-anchor="end">TAP A BUILDING</text>
+      <svg viewBox="0 0 400 ${VB_H}" xmlns="http://www.w3.org/2000/svg" aria-label="Site plan" preserveAspectRatio="xMinYMin meet" overflow="hidden">
+        <text x="6" y="20" class="annot compass">↑ N</text>
+        <text x="398" y="22" class="annot tap-hint" text-anchor="end">TAP A BUILDING</text>
 
         <g data-key="digital">
           <rect class="b-rect${a("digital")}" x="${BX}" y="${yDmb}" width="${BW}" height="${BH}"/>
@@ -782,10 +806,7 @@
       </div>
 
       <h1 class="hero">Find your way around.</h1>
-      <details class="intro-fold">
-        <summary>Evening · three buildings · one screen</summary>
-        <p class="hero-sub">A window into the future of the creative industry. <b>Three buildings, one evening.</b></p>
-      </details>
+      <p class="hero-sub">A window into the future of the creative industry. <b>Three buildings, one evening.</b></p>
 
       <div class="view-inline" role="group" aria-label="View">
         <button type="button" data-view="plan" aria-pressed="${showPlan}">Map</button>
