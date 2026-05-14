@@ -45,6 +45,12 @@
 
   *, *::before, *::after { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
   html, body { margin: 0; padding: 0; }
+  html.splash-open,
+  html.splash-open body {
+    overflow: hidden;
+    height: 100%;
+    touch-action: none;
+  }
   body {
     background: #ECECEC;
     font-family: var(--sans);
@@ -71,7 +77,7 @@
       box-shadow: 0 24px 60px rgba(0,0,0,0.16);
     }
   }
-  .map-body { padding: 18px var(--pad) 64px; }
+  .map-body { padding: 12px var(--pad) 48px; }
 
   /* ─── Icon system ───────────────────────────────────────── */
   .icon { display: inline-block; fill: currentColor; flex: none; }
@@ -81,14 +87,21 @@
   /* ─── SPLASH (flat pink + black logo) ───────────────────── */
   /* ───────────────────────────────────────────────────────── */
   .splash {
-    position: absolute;
+    position: fixed;
     inset: 0;
-    z-index: 50;
+    z-index: 9999;
+    width: 100%;
+    height: 100dvh;
+    max-height: 100dvh;
     background: var(--pink);
-    display: grid;
-    place-items: center;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: max(12px, env(safe-area-inset-top)) max(12px, env(safe-area-inset-right)) max(12px, env(safe-area-inset-bottom)) max(12px, env(safe-area-inset-left));
     cursor: pointer;
     will-change: transform;
+    box-sizing: border-box;
   }
   .splash.dismissed {
     transform: translateY(-100%);
@@ -96,15 +109,20 @@
     pointer-events: none;
   }
   .splash .logo {
-    width: 56%;
+    width: clamp(150px, 52vw, 220px);
+    max-height: min(52dvh, 420px);
     aspect-ratio: 685 / 962;
     background: url("assets/logo-black.png") center / contain no-repeat;
+    flex: 0 0 auto;
   }
   .splash .hint {
-    position: absolute; left: 0; right: 0; bottom: 22px;
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: max(16px, env(safe-area-inset-bottom));
     text-align: center;
     font-family: var(--mono);
-    font-size: 12px;
+    font-size: 11px;
     letter-spacing: 0.18em;
     text-transform: uppercase;
     color: rgba(0,0,0,0.55);
@@ -118,12 +136,13 @@
     display: flex;
     justify-content: space-between;
     align-items: center;
+    gap: 10px;
     font-family: var(--mono);
-    font-size: 12px;
+    font-size: 11px;
     letter-spacing: 0.04em;
     text-transform: uppercase;
     color: var(--ink);
-    padding-bottom: 14px;
+    padding-bottom: 8px;
     border-bottom: 1px solid var(--ink);
   }
   .top-strip .brand { display: inline-flex; align-items: center; gap: 8px; }
@@ -137,55 +156,97 @@
   h1.hero {
     font-family: var(--sans);
     font-weight: 900;
-    font-size: 52px;
-    line-height: 0.88;
+    font-size: clamp(34px, 9.2vw, 42px);
+    line-height: 0.92;
     letter-spacing: -0.035em;
-    margin: 22px 0 12px;
+    margin: 8px 0 6px;
     color: var(--ink);
     text-wrap: balance;
   }
   .hero-sub {
     font-family: var(--sans);
     font-weight: 400;
-    font-size: 15px;
-    line-height: 1.35;
+    font-size: 13px;
+    line-height: 1.3;
     color: var(--ink);
-    max-width: 30ch;
-    margin: 0 0 20px;
+    max-width: 36ch;
+    margin: 0;
   }
   .hero-sub b { font-weight: 700; }
 
-  /* ─── View toggle (square, IADT-brand) ──────────────────── */
-  .view-toggle {
-    display: inline-flex;
-    border: 1.5px solid var(--ink);
-    font-family: var(--mono);
-    font-size: 12px;
-    letter-spacing: 0.06em;
-    text-transform: uppercase;
-    background: var(--paper);
-  }
-  .view-toggle button {
-    appearance: none;
+  .intro-fold {
+    margin: 4px 0 0;
     border: 0;
-    background: transparent;
-    color: var(--ink);
-    padding: 10px 16px;
-    font: inherit;
-    cursor: pointer;
-    min-height: 44px;
   }
-  .view-toggle button + button { border-left: 1.5px solid var(--ink); }
-  .view-toggle button[aria-pressed="true"] { background: var(--ink); color: var(--paper); }
+  .intro-fold > summary {
+    list-style: none;
+    font-family: var(--mono);
+    font-size: 10px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--muted);
+    cursor: pointer;
+    padding: 4px 0 6px;
+    border-bottom: 1px solid var(--rule);
+  }
+  .intro-fold > summary::-webkit-details-marker { display: none; }
+  .intro-fold[open] > summary { color: var(--ink); margin-bottom: 6px; border-bottom-color: var(--ink); }
+  .intro-fold .hero-sub { margin: 0 0 6px; }
 
-  /* ─── Site plan: full-bleed, top/bottom rules only ──────── */
+  /* ─── Map / list: compact inline control (not two chunky buttons) ─ */
+  .view-inline {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 6px 10px;
+    margin: 6px 0 0;
+    font-family: var(--mono);
+    font-size: 11px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+  }
+  .view-inline .sep { color: var(--rule); font-weight: 400; }
+  .view-inline button {
+    appearance: none;
+    background: none;
+    border: 0;
+    padding: 0;
+    margin: 0;
+    font: inherit;
+    color: var(--muted);
+    cursor: pointer;
+    text-decoration: none;
+    border-bottom: 1px solid transparent;
+    min-height: 44px;
+    display: inline-flex;
+    align-items: center;
+  }
+  .view-inline button[aria-pressed="true"] {
+    color: var(--ink);
+    font-weight: 700;
+    border-bottom-color: var(--ink);
+  }
+
+  /* ─── Site plan: align with content gutters; cap height so map fits in view ─ */
   .plan {
-    margin: 18px calc(var(--pad) * -1) 0;
+    margin: 6px 0 0;
+    padding: 0 var(--pad);
     border-top: 1px solid var(--ink);
     border-bottom: 1px solid var(--ink);
     background: var(--paper);
+    max-height: min(50dvh, 360px);
+    overflow: hidden;
+    display: flex;
+    align-items: flex-start;
+    justify-content: center;
   }
-  .plan svg { display: block; width: 100%; height: auto; }
+  .plan svg {
+    display: block;
+    width: 100%;
+    max-width: 100%;
+    height: auto;
+    max-height: min(50dvh, 360px);
+  }
 
   /* SVG plan styles */
   .b-rect       { fill: var(--paper); stroke: var(--ink); stroke-width: 1.5; cursor: pointer; transition: fill 200ms; }
@@ -196,7 +257,12 @@
   .b-sub.active { fill: var(--paper); opacity: 0.9; }
   .annot        { font-family: var(--mono); font-size: 9px; letter-spacing: 0.14em; fill: var(--ink); text-transform: uppercase; }
   .annot.compass { font-size: 15px; font-weight: 700; letter-spacing: 0.12em; }
-  .annot.tap-hint { font-size: 10px; font-weight: 700; letter-spacing: 0.14em; fill: var(--muted); }
+  .annot.tap-hint { font-size: 9px; font-weight: 700; letter-spacing: 0.12em; fill: var(--muted); }
+  .annot.kill-ave {
+    font-size: 9px;
+    font-weight: 700;
+    letter-spacing: 0.22em;
+  }
   .b-plan-id {
     font-family: var(--mono);
     font-size: 11px;
@@ -212,7 +278,7 @@
 
   /* ─── Search (square) ───────────────────────────────────── */
   .search {
-    margin-top: 22px;
+    margin-top: 10px;
     position: relative;
     border: 1.5px solid var(--ink);
     background: var(--paper);
@@ -241,8 +307,14 @@
 
   /* ─── Chips (square) ────────────────────────────────────── */
   .chips {
-    margin-top: 12px;
-    display: flex; flex-wrap: wrap; gap: 6px;
+    margin-top: 10px;
+    display: flex;
+    flex-wrap: nowrap;
+    gap: 6px;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    padding-bottom: 4px;
+    scrollbar-width: thin;
   }
   .chip {
     appearance: none;
@@ -256,6 +328,7 @@
     letter-spacing: -0.005em;
     cursor: pointer;
     min-height: 38px;
+    flex-shrink: 0;
     transition: background 150ms, color 150ms, border-color 150ms;
   }
   .chip[aria-selected="true"] {
@@ -266,7 +339,7 @@
 
   /* ─── Section heading ───────────────────────────────────── */
   .section-head {
-    margin-top: 24px;
+    margin-top: 14px;
     padding-bottom: 12px;
     border-bottom: 1.5px solid var(--ink);
     display: flex;
@@ -389,8 +462,8 @@
 
   /* ─── Footer ────────────────────────────────────────────── */
   footer {
-    margin-top: 36px;
-    padding-top: 18px;
+    margin-top: 24px;
+    padding-top: 14px;
     border-top: 1px solid var(--ink);
     display: flex;
     justify-content: space-between;
@@ -452,19 +525,21 @@
      SPLASH (single variant: flat pink + black logo)
      ───────────────────────────────────────────────────────── */
   function showSplash() {
-    const el = document.createElement('div');
-    el.className = 'splash';
+    document.documentElement.classList.add("splash-open");
+    const el = document.createElement("div");
+    el.className = "splash";
     el.innerHTML = `
       <div class="logo"></div>
       <div class="hint">tap to enter</div>
     `;
-    el.addEventListener('click', () => dismissSplash(el));
-    document.getElementById('root').appendChild(el);
+    el.addEventListener("click", () => dismissSplash(el));
+    document.body.appendChild(el);
     setTimeout(() => dismissSplash(el), 1400);
   }
   function dismissSplash(el) {
-    if (!el || el.classList.contains('dismissed')) return;
-    el.classList.add('dismissed');
+    if (!el || el.classList.contains("dismissed")) return;
+    el.classList.add("dismissed");
+    document.documentElement.classList.remove("splash-open");
     setTimeout(() => el.remove(), 750);
   }
 
@@ -557,50 +632,57 @@
   /* ─── Site plan SVG ─────────────────────────────────────── */
   function plan() {
     const a = (id) => active === id ? " active" : "";
-    const BX = 50;
-    const BW = 300;
-    const BH = 110;
-    const GAP = 48;
-    const Y0 = 52;
+    const VB_H = 472;
+    const BX = 18;
+    const BW = 282;
+    const BH = 88;
+    const GAP = 24;
+    const Y0 = 34;
     const yDmb = Y0;
     const yAtrium = yDmb + BH + GAP;
     const yQuad = yAtrium + BH + GAP;
-    const hQuad = 248;
-    const cy = yQuad + 88;
-    const ch = 128;
+    const hQuad = 188;
+    const cy = yQuad + 60;
+    const ch = 98;
+    const nfsW = 76;
+    const nfsX = BX + BW - nfsW;
+    const cx1 = BX + 12;
+    const cx2 = BX + 12 + 118 + 10;
+    const killCx = 394;
+    const killCy = 168;
     return `
-      <svg viewBox="0 0 400 672" xmlns="http://www.w3.org/2000/svg" aria-label="Site plan">
-        <text x="22" y="34" class="annot compass">↑ N</text>
-        <text x="378" y="34" class="annot tap-hint" text-anchor="end">TAP A BUILDING</text>
+      <svg viewBox="0 0 400 ${VB_H}" xmlns="http://www.w3.org/2000/svg" aria-label="Site plan">
+        <text x="${BX + 4}" y="20" class="annot compass">↑ N</text>
+        <text x="396" y="22" class="annot tap-hint" text-anchor="end">TAP A BUILDING</text>
 
         <g data-key="digital">
           <rect class="b-rect${a("digital")}" x="${BX}" y="${yDmb}" width="${BW}" height="${BH}"/>
-          <text class="b-plan-id${a("digital")}" x="62" y="${yDmb + 22}">DMB</text>
+          <text class="b-plan-id${a("digital")}" x="${BX + 10}" y="${yDmb + 20}">DMB</text>
         </g>
 
         <g data-key="atrium">
           <rect class="b-rect${a("atrium")}" x="${BX}" y="${yAtrium}" width="${BW}" height="${BH}"/>
-          <text class="b-plan-id${a("atrium")}" x="62" y="${yAtrium + 22}">ATRIUM</text>
+          <text class="b-plan-id${a("atrium")}" x="${BX + 10}" y="${yAtrium + 20}">ATRIUM</text>
         </g>
 
         <g data-key="quad">
           <rect class="b-rect${a("quad")}" x="${BX}" y="${yQuad}" width="${BW}" height="${hQuad}"/>
-          <text class="b-plan-id${a("quad")}" x="62" y="${yQuad + 22}">QUAD</text>
+          <text class="b-plan-id${a("quad")}" x="${BX + 10}" y="${yQuad + 20}">QUAD</text>
         </g>
 
-        <rect class="courtyard" x="66"  y="${cy}" width="128" height="${ch}"/>
-        <text x="130" y="${cy + ch * 0.55}" class="annot" text-anchor="middle">COURTYARD</text>
-        <rect class="courtyard" x="206" y="${cy}" width="128" height="${ch}"/>
-        <text x="270" y="${cy + ch * 0.55}" class="annot" text-anchor="middle">COURTYARD</text>
+        <rect class="courtyard" x="${cx1}" y="${cy}" width="118" height="${ch}"/>
+        <text x="${cx1 + 59}" y="${cy + ch * 0.55}" class="annot" text-anchor="middle">COURTYARD</text>
+        <rect class="courtyard" x="${cx2}" y="${cy}" width="118" height="${ch}"/>
+        <text x="${cx2 + 59}" y="${cy + ch * 0.55}" class="annot" text-anchor="middle">COURTYARD</text>
 
         <g data-key="quad">
-          <rect class="b-rect${a("quad")}" x="262" y="${yQuad}" width="86" height="30"/>
-          <text class="b-sub${a("quad")}" x="272" y="${yQuad + 12}" style="font-size:7px">NFS</text>
-          <text class="b-label${a("quad")}" x="272" y="${yQuad + 26}" style="font-size:9px">FILM SCHOOL</text>
+          <rect class="b-rect${a("quad")}" x="${nfsX}" y="${yQuad}" width="${nfsW}" height="28"/>
+          <text class="b-sub${a("quad")}" x="${nfsX + 6}" y="${yQuad + 11}" style="font-size:7px">NFS</text>
+          <text class="b-label${a("quad")}" x="${nfsX + 6}" y="${yQuad + 24}" style="font-size:8px">FILM SCHOOL</text>
         </g>
 
-        <text x="392" y="210" class="annot" transform="rotate(90 392 210)" text-anchor="start" style="font-size:10px;font-weight:700;letter-spacing:0.16em">KEELE AVE ENTRANCE</text>
-        <path class="pathline" d="M 350 ${yAtrium + BH * 0.5} L 392 210"/>
+        <text x="${killCx}" y="${killCy}" class="annot kill-ave" transform="rotate(90 ${killCx} ${killCy})" text-anchor="end">K I L L   A V E   E N T R A N C E</text>
+        <path class="pathline" d="M ${BX + BW} ${yAtrium + BH * 0.5} L ${killCx} ${killCy}"/>
       </svg>
     `;
   }
@@ -699,12 +781,16 @@
         <span class="when">Thu 28 May · 17:30</span>
       </div>
 
-      <h1 class="hero">Find your<br/>way around.</h1>
-      <p class="hero-sub">A window into the future of the creative industry. <b>Three buildings, one evening.</b></p>
+      <h1 class="hero">Find your way around.</h1>
+      <details class="intro-fold">
+        <summary>Evening · three buildings · one screen</summary>
+        <p class="hero-sub">A window into the future of the creative industry. <b>Three buildings, one evening.</b></p>
+      </details>
 
-      <div class="view-toggle" role="group" aria-label="View">
-        <button data-view="plan" aria-pressed="${showPlan}">Site plan</button>
-        <button data-view="list" aria-pressed="${!showPlan}">List only</button>
+      <div class="view-inline" role="group" aria-label="View">
+        <button type="button" data-view="plan" aria-pressed="${showPlan}">Map</button>
+        <span class="sep" aria-hidden="true">/</span>
+        <button type="button" data-view="list" aria-pressed="${!showPlan}">List only</button>
       </div>
 
       <div class="plan ${showPlan ? '' : 'hidden'}">
