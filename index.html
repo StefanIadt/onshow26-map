@@ -151,7 +151,7 @@
   .top-strip {
     display: flex;
     justify-content: space-between;
-    align-items: center;
+    align-items: flex-end;
     gap: 10px;
     font-family: var(--mono);
     font-size: 11px;
@@ -163,55 +163,67 @@
   }
   .top-strip .brand {
     display: inline-flex;
-    align-items: center;
-    gap: 8px;
+    align-items: flex-end;
+    gap: 10px;
     min-width: 0;
     flex: 1 1 auto;
   }
   .top-strip .brand-mark {
-    width: 22px; height: 30px;
+    width: 36px;
+    height: 50px;
+    flex-shrink: 0;
     background: url("assets/logo-pink.png") center / contain no-repeat;
     display: inline-block;
   }
+  .top-strip .brand-text {
+    line-height: 1;
+    padding-bottom: 1px;
+  }
   .top-strip .when {
-    color: var(--muted);
-    flex-shrink: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 3px;
+    flex-shrink: 0;
     min-width: 0;
     text-align: right;
+    line-height: 1.15;
+  }
+  .top-strip .when .countdown {
+    font-weight: 700;
+    color: var(--ink);
+    letter-spacing: 0.05em;
+    white-space: nowrap;
+    font-size: clamp(9px, 2.9vw, 11px);
+  }
+  .top-strip .when .when-note {
+    font-size: 9px;
+    font-weight: 400;
+    letter-spacing: 0.08em;
+    color: var(--muted);
+    text-transform: uppercase;
   }
 
-  /* ─── Hero: stacked display type (IADT “block + inner alignment” rhythm) ─ */
-  h1.hero.hero-stack {
+  h1.hero {
     font-family: var(--sans);
     font-weight: 900;
-    font-size: clamp(30px, 8vw, 38px);
-    line-height: 0.9;
-    letter-spacing: -0.042em;
+    font-size: clamp(34px, 9vw, 42px);
+    line-height: 1;
+    letter-spacing: -0.035em;
     margin: 8px 0 6px;
     color: var(--ink);
-    display: inline-block;
-    vertical-align: top;
-    width: fit-content;
+    display: block;
     max-width: 100%;
-    text-rendering: geometricPrecision;
   }
-  .hero-stack .hero-line {
+  .hero .hero-line1 {
     display: block;
     white-space: nowrap;
   }
-  /* Longest line sets measure; short lines optically meet the same right edge */
-  .hero-stack .hero-line--r {
-    text-align: right;
-  }
-  /* Inner line: stepped in so verticals read on a second rhythm (cf. “it” / “getting”) */
-  .hero-stack .hero-line--inner {
-    text-align: left;
-    padding-left: 0.38em;
-    letter-spacing: -0.05em;
-  }
-  /* Bottom anchor line: defines block width */
-  .hero-stack .hero-line--anchor {
-    text-align: left;
+  .hero .hero-line2 {
+    display: block;
+    margin-top: 0.08em;
+    padding-left: 0.5em;
+    white-space: nowrap;
   }
   .hero-sub {
     font-family: var(--sans);
@@ -819,20 +831,46 @@
     `;
   }
 
+  const EVENT_OPENS_MS = new Date("2026-05-28T17:30:00+01:00").getTime();
+
+  function pad2(n) {
+    return n < 10 ? "0" + n : String(n);
+  }
+
+  function updateCountdownUI() {
+    const el = document.getElementById("countdown");
+    if (!el) return;
+    const now = Date.now();
+    let ms = EVENT_OPENS_MS - now;
+    if (ms <= 0) {
+      el.textContent = "Opened · Thu 28 May · 17:30";
+      return;
+    }
+    const days = Math.floor(ms / 86400000);
+    ms %= 86400000;
+    const hours = Math.floor(ms / 3600000);
+    ms %= 3600000;
+    const mins = Math.floor(ms / 60000);
+    ms %= 60000;
+    const secs = Math.floor(ms / 1000);
+    el.textContent = `${days}d ${pad2(hours)}h ${pad2(mins)}m ${pad2(secs)}s`;
+  }
+
   function render() {
     const b = DATA[active];
     const body = document.getElementById('body');
     body.innerHTML = `
       <div class="top-strip">
-        <span class="brand"><span class="brand-mark" aria-hidden="true"></span>On Show 26</span>
-        <span class="when">Thu 28 May · 17:30</span>
+        <span class="brand"><span class="brand-mark" aria-hidden="true"></span><span class="brand-text">On Show 26</span></span>
+        <div class="when">
+          <span id="countdown" class="countdown" aria-live="polite">—</span>
+          <span class="when-note">Opens Thu 28 May · 17:30</span>
+        </div>
       </div>
 
-      <h1 class="hero hero-stack" aria-label="Find your way around.">
-        <span class="hero-line hero-line--r">find</span>
-        <span class="hero-line hero-line--inner">your</span>
-        <span class="hero-line hero-line--r">way</span>
-        <span class="hero-line hero-line--anchor">around.</span>
+      <h1 class="hero" aria-label="Find your way around.">
+        <span class="hero-line1">Find your way</span>
+        <span class="hero-line2">around.</span>
       </h1>
       <p class="hero-sub">A window into the future of the creative industry. <b>Three buildings, one evening.</b></p>
 
@@ -907,7 +945,10 @@
     if (clear) clear.addEventListener('click', () => { query = ''; filter = 'all'; render(); });
     const replay = body.querySelector('[data-replay]');
     if (replay) replay.addEventListener('click', () => showSplash());
+    updateCountdownUI();
   }
+
+  setInterval(updateCountdownUI, 1000);
 
   /* ─── Init ──────────────────────────────────────────────── */
   showSplash();
