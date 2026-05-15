@@ -44,27 +44,31 @@
   }
 
   *, *::before, *::after { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
-  html, body {
+  html {
     margin: 0;
     padding: 0;
     max-width: 100%;
     overflow-x: hidden;
-  }
-  html.splash-open,
-  html.splash-open body {
-    overflow: hidden;
-    height: 100%;
-    touch-action: none;
+    -webkit-text-size-adjust: 100%;
   }
   body {
+    margin: 0;
+    padding: 0;
+    max-width: 100%;
+    overflow-x: hidden;
     background: #ECECEC;
     font-family: var(--sans);
     color: var(--ink);
     min-height: 100vh;
-    display: flex;
-    justify-content: center;
-    overscroll-behavior-y: contain;
     width: 100%;
+  }
+  /* Splash only: lock document scroll (avoid touch-action:none — breaks Android scroll after dismiss) */
+  body.scroll-locked {
+    position: fixed;
+    left: 0;
+    right: 0;
+    width: 100%;
+    overflow: hidden;
   }
 
   /* ─── Phone container ──────────────────────────────────── */
@@ -73,13 +77,14 @@
     max-width: min(440px, 100%);
     min-height: 100vh;
     min-width: 0;
+    margin: 0 auto;
     background: var(--paper);
     position: relative;
-    overflow-x: hidden;
+    overflow: visible;
   }
   @media (min-width: 520px) {
     .phone {
-      margin: 32px 0;
+      margin: 32px auto;
       min-height: 0;
       box-shadow: 0 24px 60px rgba(0,0,0,0.16);
     }
@@ -89,7 +94,7 @@
     width: 100%;
     max-width: 100%;
     min-width: 0;
-    overflow-x: hidden;
+    overflow: visible;
   }
 
   /* ─── Icon system ───────────────────────────────────────── */
@@ -329,7 +334,8 @@
     border-bottom: 1px solid var(--ink);
     background: var(--paper);
     max-height: min(50dvh, 360px);
-    overflow: hidden;
+    overflow-x: clip;
+    overflow-y: hidden;
     display: flex;
     align-items: flex-start;
     justify-content: flex-start;
@@ -411,7 +417,9 @@
     max-width: 100%;
     min-width: 0;
     overflow-x: auto;
+    overflow-y: hidden;
     -webkit-overflow-scrolling: touch;
+    touch-action: pan-x;
     padding-bottom: 4px;
     scrollbar-width: thin;
   }
@@ -630,8 +638,22 @@
   /* ─────────────────────────────────────────────────────────
      SPLASH (single variant: flat pink + black logo)
      ───────────────────────────────────────────────────────── */
+  let scrollLockY = 0;
+
+  function lockPageScroll() {
+    scrollLockY = window.scrollY || document.documentElement.scrollTop || 0;
+    document.body.classList.add("scroll-locked");
+    document.body.style.top = scrollLockY ? `-${scrollLockY}px` : "";
+  }
+
+  function unlockPageScroll() {
+    document.body.classList.remove("scroll-locked");
+    document.body.style.top = "";
+    window.scrollTo(0, scrollLockY);
+  }
+
   function showSplash() {
-    document.documentElement.classList.add("splash-open");
+    lockPageScroll();
     const el = document.createElement("div");
     el.className = "splash";
     el.innerHTML = `
@@ -645,7 +667,7 @@
   function dismissSplash(el) {
     if (!el || el.classList.contains("dismissed")) return;
     el.classList.add("dismissed");
-    document.documentElement.classList.remove("splash-open");
+    unlockPageScroll();
     setTimeout(() => el.remove(), 750);
   }
 
@@ -998,6 +1020,11 @@
   }
 
   setInterval(updateCountdownUI, 1000);
+
+  /* Failsafe: never leave the page scroll-locked (Android WebView / bfcache) */
+  window.addEventListener("pageshow", () => {
+    if (!document.querySelector(".splash")) unlockPageScroll();
+  });
 
   /* ─── Init ──────────────────────────────────────────────── */
   showSplash();
